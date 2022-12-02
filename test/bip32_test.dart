@@ -6,17 +6,18 @@ import 'dart:io';
 import 'dart:convert';
 
 final LITECOIN = NetworkType(
-    messagePrefix: "Litecoin Signed Message:\n",
-    bip32: new Bip32Type(private: 0x019d9cfe, public: 0x019da462),
-    pubKeyHash: 48,
-    scriptHash: 50,
-    wif: 0xb0,
-    opreturnSize: 80);
+  messagePrefix: "Litecoin Signed Message:\n",
+  bip32: Bip32Type(private: 0x019d9cfe, public: 0x019da462),
+  pubKeyHash: 48,
+  scriptHash: 50,
+  wif: 0xb0,
+  opreturnSize: 80,
+);
 List<dynamic> validAll = [];
 
 void main() {
-  Map<String, dynamic> fixtures = json
-      .decode(File('./test/fixtures.json').readAsStringSync(encoding: utf8));
+  Map<String, dynamic> fixtures =
+      json.decode(File('./test/fixtures.json').readAsStringSync(encoding: utf8));
   (fixtures['valid'] as List<dynamic>).forEach((f) {
     f['master']['network'] = f['network'];
     f['master']['children'] = f['children'];
@@ -29,7 +30,7 @@ void main() {
     validAll.forEach((ff) {
       group(ff['comment'] ?? ff['base58Priv'], () {
         setUp(() {});
-        var network;
+        NetworkType? network;
         if (ff['network'] == 'litecoin') {
           network = LITECOIN;
         }
@@ -56,9 +57,10 @@ void main() {
 
   test('fromBase58 throws', () {
     (fixtures['invalid']['fromBase58'] as List<dynamic>).forEach((f) {
-      var network;
-      if (f['network'] != null && f['network'] == 'litecoin')
+      NetworkType? network;
+      if (f['network'] != null && f['network'] == 'litecoin') {
         network = LITECOIN;
+      }
       BIP32? hd;
       try {
         hd = BIP32.fromBase58(f['string'], network);
@@ -102,8 +104,7 @@ void main() {
     try {
       hd = master.deriveHardened(c['m']);
     } catch (err) {
-      expect((err as ArgumentError).message,
-          "Missing private key for hardened child key");
+      expect((err as ArgumentError).message, "Missing private key for hardened child key");
     } finally {
       expect(hd, null);
     }
@@ -113,7 +114,7 @@ void main() {
     final f = fixtures['valid'][0];
     final master = BIP32.fromBase58(f['master']['base58'] as String);
     (fixtures['invalid']['derive'] as List<dynamic>).forEach((fx) {
-      var hd;
+      BIP32? hd;
       try {
         hd = master.derive(fx);
       } catch (err) {
@@ -123,7 +124,7 @@ void main() {
       }
     });
     (fixtures['invalid']['deriveHardened'] as List<dynamic>).forEach((fx) {
-      var hd;
+      BIP32? hd;
       try {
         hd = master.deriveHardened(fx);
       } catch (err) {
@@ -133,7 +134,7 @@ void main() {
       }
     });
     (fixtures['invalid']['derivePath'] as List<dynamic>).forEach((fx) {
-      var hd;
+      BIP32? hd;
       try {
         hd = master.derivePath(fx);
       } catch (err) {
@@ -142,11 +143,11 @@ void main() {
         expect(hd, null);
       }
     });
-    var hdFPrv1, hdFPrv2;
+    BIP32? hdFPrv1, hdFPrv2;
     final ZERO32 = Uint8List.fromList(List.generate(32, (index) => 0));
     final ONE32 = Uint8List.fromList(List.generate(32, (index) => 1));
     try {
-      hdFPrv1 = BIP32.fromPrivateKey(new Uint8List(2), ONE32);
+      hdFPrv1 = BIP32.fromPrivateKey(Uint8List(2), ONE32);
     } catch (err) {
       expect((err as ArgumentError).message,
           "Expected property privateKey of type Buffer(Length: 32)");
@@ -183,7 +184,7 @@ void main() {
 
   test("fromSeed", () {
     (fixtures['invalid']['fromSeed'] as List<dynamic>).forEach((f) {
-      var hd;
+      BIP32? hd;
       try {
         hd = BIP32.fromSeed(HEX.decode(f['seed']) as Uint8List);
       } catch (err) {
@@ -209,8 +210,8 @@ void main() {
 
 void verify(BIP32 hd, prv, f, network) {
   expect(HEX.encode(hd.chainCode), f['chainCode']);
-  expect(hd.depth, f['depth'] == null ? 0 : f['depth']);
-  expect(hd.index, f['index'] == null ? 0 : f['index']);
+  expect(hd.depth, f['depth'] ?? 0);
+  expect(hd.index, f['index'] ?? 0);
   expect(HEX.encode(hd.fingerprint), f['fingerprint']);
   expect(HEX.encode(hd.identifier), f['identifier']);
   expect(HEX.encode(hd.publicKey), f['pubKey']);
@@ -225,10 +226,7 @@ void verify(BIP32 hd, prv, f, network) {
   expect(hd.isNeutered(), !prv);
 
   if (f['children'] == null) return;
-  if (!prv &&
-      (f['children'] as List<dynamic>)
-          .map((fc) => fc['hardened'])
-          .contains(true)) return;
+  if (!prv && (f['children'] as List<dynamic>).map((fc) => fc['hardened']).contains(true)) return;
 
   (f['children'] as List<dynamic>).forEach((cf) {
     var chd = hd.derivePath(cf['path']);
@@ -245,8 +243,9 @@ void verify(BIP32 hd, prv, f, network) {
       shd = shd.deriveHardened(cf['m']);
     } else {
       // verify any publicly derived children
-      if (cf['base58'] != null)
+      if (cf['base58'] != null) {
         verify(shd.neutered().derive(cf['m']), false, cf, network);
+      }
       shd = shd.derive(cf['m']);
       verify(shd, prv, cf, network);
     }

@@ -14,8 +14,10 @@ main() {
 
   var seed = bip39.mnemonicToSeed(
       'praise you muffin lion enable neck grocery crumble super myself license ghost');
-  var hdWallet = new HDWallet.fromSeed(seed,
-      network: Peercoin); //default network is Bitcoin
+  var hdWallet = HDWallet.fromSeed(
+    seed,
+    network: Peercoin,
+  ); //default network is Bitcoin
   print(hdWallet.address);
   // => PAEeTmyME9rb2j3Ka9M65UG7To5wzZ36nf
   print(hdWallet.pubKey);
@@ -25,8 +27,7 @@ main() {
   print(hdWallet.wif);
   // => U59hdLpi45SME3yjGoXXuYy8FVvW2yUoLdE3TJ3gfRYJZ33iWbfD
 
-  var wallet = Wallet.fromWIF(
-      'U59hdLpi45SME3yjGoXXuYy8FVvW2yUoLdE3TJ3gfRYJZ33iWbfD', Peercoin);
+  var wallet = Wallet.fromWIF('U59hdLpi45SME3yjGoXXuYy8FVvW2yUoLdE3TJ3gfRYJZ33iWbfD', Peercoin);
   print(wallet.address);
   // => PAEeTmyME9rb2j3Ka9M65UG7To5wzZ36nf
   print(wallet.pubKey);

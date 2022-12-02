@@ -3,8 +3,8 @@ import 'package:hex/hex.dart';
 import 'dart:typed_data';
 import 'dart:io';
 import 'dart:convert';
-import '../lib/src/ecpair.dart' show ECPair;
-import '../lib/src/models/networks.dart' as NETWORKS;
+import 'package:coinslib/src/ecpair.dart' show ECPair;
+import 'package:coinslib/src/models/networks.dart' as NETWORKS;
 
 final ONE = HEX.decode(
         '0000000000000000000000000000000000000000000000000000000000000001')
@@ -117,7 +117,7 @@ main() {
       });
       test('throws if d is bad length', () {
         rng(int number) {
-          return new Uint8List(28);
+          return Uint8List(28);
         }
 
         try {

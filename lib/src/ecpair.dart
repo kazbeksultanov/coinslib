@@ -10,13 +10,16 @@ class ECPair {
   NetworkType network;
   bool compressed;
 
-  ECPair(Uint8List? this._d, Uint8List? this._Q,
-      {NetworkType? network, bool? compressed})
-      : network = network ?? bitcoin,
-        compressed = compressed ?? true {}
+  ECPair(
+    this._d,
+    this._Q, {
+    NetworkType? network,
+    bool? compressed,
+  })  : network = network ?? bitcoin,
+        compressed = compressed ?? true;
 
   Uint8List? get publicKey {
-    if (_Q == null) _Q = ecc.pointFromScalar(_d!, compressed);
+    _Q ??= ecc.pointFromScalar(_d!, compressed);
     return _Q;
   }
 
@@ -24,10 +27,10 @@ class ECPair {
 
   String toWIF() {
     if (privateKey == null) {
-      throw new ArgumentError('Missing private key');
+      throw ArgumentError('Missing private key');
     }
-    return wif.encode(new wif.WIF(
-        version: network.wif, privateKey: privateKey!, compressed: compressed));
+    return wif
+        .encode(wif.WIF(version: network.wif, privateKey: privateKey!, compressed: compressed));
   }
 
   Uint8List sign(Uint8List hash) {
@@ -49,42 +52,35 @@ class ECPair {
     NetworkType nw;
     if (network != null) {
       nw = network;
-      if (nw.wif != version) throw new ArgumentError('Invalid network version');
+      if (nw.wif != version) throw ArgumentError('Invalid network version');
     } else {
       if (version == bitcoin.wif) {
         nw = bitcoin;
       } else if (version == testnet.wif) {
         nw = testnet;
       } else {
-        throw new ArgumentError('Unknown network version');
+        throw ArgumentError('Unknown network version');
       }
     }
-    return ECPair.fromPrivateKey(decoded.privateKey,
-        compressed: decoded.compressed, network: nw);
+    return ECPair.fromPrivateKey(decoded.privateKey, compressed: decoded.compressed, network: nw);
   }
 
-  factory ECPair.fromPublicKey(Uint8List publicKey,
-      {NetworkType? network, bool? compressed}) {
+  factory ECPair.fromPublicKey(Uint8List publicKey, {NetworkType? network, bool? compressed}) {
     if (!ecc.isPoint(publicKey)) {
-      throw new ArgumentError('Point is not on the curve');
+      throw ArgumentError('Point is not on the curve');
     }
-    return new ECPair(null, publicKey,
-        network: network, compressed: compressed);
+    return ECPair(null, publicKey, network: network, compressed: compressed);
   }
 
-  factory ECPair.fromPrivateKey(Uint8List privateKey,
-      {NetworkType? network, bool? compressed}) {
-    if (privateKey.length != 32)
-      throw new ArgumentError(
-          'Expected property privateKey of type Buffer(Length: 32)');
-    if (!ecc.isPrivate(privateKey))
-      throw new ArgumentError('Private key not in range [1, n)');
-    return new ECPair(privateKey, null,
-        network: network, compressed: compressed);
+  factory ECPair.fromPrivateKey(Uint8List privateKey, {NetworkType? network, bool? compressed}) {
+    if (privateKey.length != 32) {
+      throw ArgumentError('Expected property privateKey of type Buffer(Length: 32)');
+    }
+    if (!ecc.isPrivate(privateKey)) throw ArgumentError('Private key not in range [1, n)');
+    return ECPair(privateKey, null, network: network, compressed: compressed);
   }
 
-  factory ECPair.makeRandom(
-      {NetworkType? network, bool? compressed, Function? rng}) {
+  factory ECPair.makeRandom({NetworkType? network, bool? compressed, Function? rng}) {
     final rfunc = rng ?? _randomBytes;
     Uint8List d;
 //    int beginTime = DateTime.now().millisecondsSinceEpoch;

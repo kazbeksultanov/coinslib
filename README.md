@@ -1,10 +1,12 @@
 <a href="https://pub.dartlang.org/packages/coinslib"><img alt="pub version" src="https://img.shields.io/pub/v/coinslib?style=flat-squaree"></a> [![Dart](https://github.com/Vesta-wallet/coinslib/actions/workflows/dart.yml/badge.svg)](https://github.com/Vesta-wallet/coinslib/actions/workflows/dart.yml)
 
 # coinslib
+
 A dart cryptocurrency library for Flutter, primarily build for Peercoin.
 
-
-This library is a fork of the seemingly discontinued  [bitcoin_flutter](https://github.com/dart-bitcoin/bitcoin_flutter) merged with [bech32](https://github.com/saeveritt/bech32).
+This library is a fork of the seemingly
+discontinued  [bitcoin_flutter](https://github.com/dart-bitcoin/bitcoin_flutter) merged
+with [bech32](https://github.com/saeveritt/bech32).
 
 Released under the terms of the [MIT LICENSE](LICENSE).
 
@@ -17,9 +19,10 @@ Otherwise, pull requests are appreciated.
 [Flutter Packages](https://pub.dev/packages/coinslib/install)
 
 ## Supported Coins
-- Peercoin 
+
+- Peercoin
 - Bitcoin
-- a lot of Bitcoin clones, please advise 
+- a lot of Bitcoin clones, please advise
 
 ## Examples
 
@@ -66,6 +69,7 @@ main() {
 ```
 
 The below examples are implemented as integration tests:
+
 - [Generate a random address](https://github.com/Vesta-wallet/coinslib/blob/master/test/integration/addresses_test.dart#L21)
 - [Validating address](https://github.com/Vesta-wallet/coinslib/blob/master/test/address_test.dart)
 - [Generate an address from a SHA256 hash](https://github.com/Vesta-wallet/coinslib/blob/master/test/integration/addresses_test.dart#L26)
@@ -83,8 +87,8 @@ The below examples are implemented as integration tests:
 - [Create a BIP44, bitcoin, account 0, external address](https://github.com/Vesta-wallet/coinslib/blob/master/test/integration/bip32_test.dart#L41)
 - [Use BIP39 to generate BIP32 addresses](https://github.com/Vesta-wallet/coinslib/blob/master/test/integration/bip32_test.dart#L56)
 
-
 ### TODO
+
 - Generate a SegWit P2SH address
 - Generate a SegWit multisig address
 - Create a Transaction with a P2SH(multisig) input
@@ -98,6 +102,7 @@ pub run test
 ```
 
 ## Complementing Libraries
+
 - [BIP39](https://github.com/anicdh/bip39) - Mnemonic generation for deterministic keys
 - [BIP32](https://github.com/anicdh/bip32) - BIP32
 - [Base58 Check](https://github.com/anicdh/bs58check-dart) - Base58 check encoding/decoding

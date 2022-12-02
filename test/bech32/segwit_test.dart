@@ -20,10 +20,7 @@ void main() {
           '5128751e76e8199196d454941c45d1b3a323f1433bd6751e76e8199196d454941c45d1b3a323f1433bd6'
         ],
         ['BC1SW50QA3JX3S', '6002751e'],
-        [
-          'bc1zw508d6qejxtdg4y5r3zarvaryvg6kdaj',
-          '5210751e76e8199196d454941c45d1b3a323'
-        ],
+        ['bc1zw508d6qejxtdg4y5r3zarvaryvg6kdaj', '5210751e76e8199196d454941c45d1b3a323'],
         [
           'tb1qqqqqp399et2xygdj5xreqhjjvcmzhxw4aywxecjdzew6hylgvsesrxh6hy',
           '0020000000c4a5cad46221b2a187905e5266362b99d5e91c6ce24d165dab93e86433'
@@ -36,8 +33,7 @@ void main() {
         })
         ..forEach((tuple) {
           test('decode then encode static vector: $tuple', () {
-            expect(
-                segwit.encode(segwit.decode(tuple[0])), tuple[0].toLowerCase());
+            expect(segwit.encode(segwit.decode(tuple[0])), tuple[0].toLowerCase());
           });
         });
 
@@ -62,8 +58,7 @@ void main() {
         // generated with (data length + pub key + OP_CHECKSIG = 21 + key + ac):
         // $ echo 215c29633ecf0ca73ed7812e511d580611b9c9e5219ad07a6dcc2dd092ea7f70cfac | xxd -r -p | openssl sha256
         // (stdin)= 1863143c14c5166804bd19203356da136c985678cd4d27a1b8c6329604903262
-        var hash =
-            '1863143c14c5166804bd19203356da136c985678cd4d27a1b8c6329604903262';
+        var hash = '1863143c14c5166804bd19203356da136c985678cd4d27a1b8c6329604903262';
         expect(segwit.encode(Segwit('bc', 0, HEX.decode(hash))),
             'bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3qccfmv3');
       });
@@ -71,26 +66,22 @@ void main() {
 
     group('invalid test vectors from specification having', () {
       test('invalid hrp', () {
-        expect(
-            () => segwit.decode('tc1qw508d6qejxtdg4y5r3zarvary0c5xw7kg3g4ty'),
+        expect(() => segwit.decode('tc1qw508d6qejxtdg4y5r3zarvary0c5xw7kg3g4ty'),
             throwsA(TypeMatcher<InvalidHrp>()));
       });
 
       test('invalid checksum', () {
-        expect(
-            () => segwit.decode('bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t5'),
+        expect(() => segwit.decode('bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t5'),
             throwsA(TypeMatcher<InvalidChecksum>()));
       });
 
       test('invalid witness version', () {
-        expect(
-            () => segwit.decode('BC13W508D6QEJXTDG4Y5R3ZARVARY0C5XW7KN40WF2'),
+        expect(() => segwit.decode('BC13W508D6QEJXTDG4Y5R3ZARVARY0C5XW7KN40WF2'),
             throwsA(TypeMatcher<InvalidWitnessVersion>()));
       });
 
       test('invalid program length (too short)', () {
-        expect(() => segwit.decode('bc1rw5uspcuh'),
-            throwsA(TypeMatcher<InvalidProgramLength>()));
+        expect(() => segwit.decode('bc1rw5uspcuh'), throwsA(TypeMatcher<InvalidProgramLength>()));
       });
 
       test('invalid program length (too long)', () {
@@ -107,8 +98,7 @@ void main() {
 
       test('mixed case', () {
         expect(
-            () => segwit.decode(
-                'tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sL5k7'),
+            () => segwit.decode('tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3q0sL5k7'),
             throwsA(TypeMatcher<MixedCase>()));
       });
 
@@ -119,14 +109,12 @@ void main() {
 
       test('non zero padding in 8-to-5 conversion', () {
         expect(
-            () => segwit.decode(
-                'tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3pjxtptv'),
+            () => segwit.decode('tb1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3pjxtptv'),
             throwsA(TypeMatcher<InvalidPadding>()));
       });
 
       test('empty data', () {
-        expect(() => segwit.decode('bc1gmk9yu'),
-            throwsA(TypeMatcher<InvalidProgramLength>()));
+        expect(() => segwit.decode('bc1gmk9yu'), throwsA(TypeMatcher<InvalidProgramLength>()));
       });
     });
   });

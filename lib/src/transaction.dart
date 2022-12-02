@@ -369,8 +369,9 @@ class Transaction {
 
     if (noStrict) return tx;
 
-    if (!reader.atEnd)
+    if (!reader.atEnd) {
       throw ArgumentError('Transaction has unexpected data');
+    }
 
     return tx;
   }
@@ -423,14 +424,18 @@ class Input {
       this.signatures,
       this.witness,
       this.prevOutType}) {
-    if (this.hash != null && !isHash256bit(this.hash!))
+    if (this.hash != null && !isHash256bit(this.hash!)) {
       throw ArgumentError('Invalid input hash');
-    if (this.index != null && !isUint(this.index!, 32))
+    }
+    if (this.index != null && !isUint(this.index!, 32)) {
       throw ArgumentError('Invalid input index');
-    if (this.sequence != null && !isUint(this.sequence!, 32))
+    }
+    if (this.sequence != null && !isUint(this.sequence!, 32)) {
       throw ArgumentError('Invalid input sequence');
-    if (this.value != null && !isSatoshi(this.value!))
+    }
+    if (this.value != null && !isSatoshi(this.value!)) {
       throw ArgumentError('Invalid ouput value');
+    }
   }
 
   factory Input.expandInput(Uint8List scriptSig, List<Uint8List> witness,
@@ -511,8 +516,9 @@ class Output {
       this.signatures,
       this.valueBuffer
   }) {
-    if (value != null && !isSatoshi(value!))
+    if (value != null && !isSatoshi(value!)) {
       throw ArgumentError('Invalid ouput value');
+    }
   }
 
   factory Output.expandOutput(Uint8List script, [Uint8List? ourPubKey]) {

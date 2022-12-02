@@ -27,7 +27,9 @@ class Address {
 
     try {
       decodeBase58 = bs58check.decode(address);
-    } catch (err) {}
+    } catch (err) {
+      //
+    }
 
     if (decodeBase58 != null) {
 
@@ -51,22 +53,26 @@ class Address {
 
     try {
       decodeBech32 = segwit.decode(address);
-    } catch (err) {}
+    } catch (err) {
+      //
+    }
 
     if (decodeBech32 != null) {
 
-      if (network.bech32 != decodeBech32.hrp)
-        throw new ArgumentError('Invalid prefix or Network mismatch');
+      if (network.bech32 != decodeBech32.hrp) {
+        throw ArgumentError('Invalid prefix or Network mismatch');
+      }
 
-      if (decodeBech32.version != 0)
-        throw new ArgumentError('Invalid address version');
+      if (decodeBech32.version != 0) {
+        throw ArgumentError('Invalid address version');
+      }
 
       final program = Uint8List.fromList(decodeBech32.program);
       final progLen = program.length;
 
       if (progLen == 20) {
-        P2WPKH p2wpkh = new P2WPKH(
-            data: new PaymentData(address: address), network: network
+        P2WPKH p2wpkh = P2WPKH(
+            data: PaymentData(address: address), network: network
         );
         return p2wpkh.data.output!;
       }
@@ -79,7 +85,7 @@ class Address {
 
     }
 
-    throw new ArgumentError(address + ' has no matching Script');
+    throw ArgumentError(address + ' has no matching Script');
 
   }
 }

@@ -9,12 +9,12 @@ import 'dart:typed_data';
 
 main() {
   final fixtures = json.decode(
-      new File("./test/fixtures/p2pkh.json").readAsStringSync(encoding: utf8));
+      File("./test/fixtures/p2pkh.json").readAsStringSync(encoding: utf8));
   group('(valid case)', () {
     (fixtures["valid"] as List<dynamic>).forEach((f) {
       test(f['description'] + ' as expected', () {
         final arguments = _preformPaymentData(f['arguments']);
-        final p2pkh = new P2PKH(data: arguments);
+        final p2pkh = P2PKH(data: arguments);
         if (arguments.address == null) {
           expect(p2pkh.data.address, f['expected']['address']);
         }
@@ -45,7 +45,7 @@ main() {
           () {
         final arguments = _preformPaymentData(f['arguments']);
         try {
-          expect(new P2PKH(data: arguments), isArgumentError);
+          expect(P2PKH(data: arguments), isArgumentError);
         } catch (err) {
           expect((err as ArgumentError).message, f['exception']);
         }
@@ -65,7 +65,7 @@ PaymentData _preformPaymentData(dynamic x) {
           : null;
   final pubkey = x['pubkey'] != null ? HEX.decode(x['pubkey']) : null;
   final signature = x['signature'] != null ? HEX.decode(x['signature']) : null;
-  return new PaymentData(
+  return PaymentData(
       address: address,
       hash: hash as Uint8List?,
       input: input,

@@ -1,7 +1,7 @@
 import 'package:hex/hex.dart';
 import 'package:test/test.dart';
-import '../lib/src/address.dart' show Address;
-import '../lib/src/models/networks.dart' as NETWORKS;
+import 'package:coinslib/src/address.dart' show Address;
+import 'package:coinslib/src/models/networks.dart' as NETWORKS;
 
 main() {
   group('Address', () {

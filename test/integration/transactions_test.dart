@@ -1,9 +1,9 @@
 import 'package:test/test.dart';
-import '../../lib/src/ecpair.dart';
-import '../../lib/src/transaction_builder.dart';
-import '../../lib/src/models/networks.dart' as NETWORKS;
-import '../../lib/src/payments/p2wpkh.dart' show P2WPKH;
-import '../../lib/src/payments/index.dart' show PaymentData;
+import 'package:coinslib/src/ecpair.dart';
+import 'package:coinslib/src/transaction_builder.dart';
+import 'package:coinslib/src/models/networks.dart' as NETWORKS;
+import 'package:coinslib/src/payments/p2wpkh.dart' show P2WPKH;
+import 'package:coinslib/src/payments/index.dart' show PaymentData;
 
 main() {
 
@@ -13,7 +13,7 @@ main() {
 
   group('bitcoinjs-lib (transactions)', () {
     test('can create a 1-to-1 Transaction', () {
-      final txb = new TransactionBuilder();
+      final txb = TransactionBuilder();
 
       txb.setVersion(1);
       txb.addInput(
@@ -37,7 +37,7 @@ main() {
       final bob = ECPair.fromWIF(
           'KwcN2pT3wnRAurhy7qMczzbkpY5nXMW2ubh696UBc1bcwctTx26z');
 
-      final txb = new TransactionBuilder();
+      final txb = TransactionBuilder();
       txb.setVersion(1);
       txb.addInput(
           'b5bb9d8014a0f9b1d61e21e796d78dccdf1352f23cd32812f4850b878ae4944c',
@@ -67,7 +67,7 @@ main() {
 
     test('can create an "null data" Transaction', () {
 
-      final txb = new TransactionBuilder();
+      final txb = TransactionBuilder();
 
       txb.setVersion(1);
       txb.addInput(
@@ -90,11 +90,11 @@ main() {
       final alice = ECPair.fromWIF(
           'cUNfunNKXNNJDvUvsjxz5tznMR6ob1g5K6oa4WGbegoQD3eqf4am',
           network: NETWORKS.testnet);
-      final p2wpkh = new P2WPKH(
-              data: new PaymentData(pubkey: alice.publicKey),
+      final p2wpkh = P2WPKH(
+              data: PaymentData(pubkey: alice.publicKey),
               network: NETWORKS.testnet)
           .data;
-      final txb = new TransactionBuilder(network: NETWORKS.testnet);
+      final txb = TransactionBuilder(network: NETWORKS.testnet);
       txb.setVersion(1);
       txb.addInput(
           '53676626f5042d42e15313492ab7e708b87559dc0a8c74b7140057af51a2ed5b',

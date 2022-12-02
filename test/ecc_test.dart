@@ -2,7 +2,7 @@ import 'dart:typed_data';
 import 'package:coinslib/coinslib.dart';
 import 'package:hex/hex.dart';
 import 'package:test/test.dart';
-import '../lib/src/utils/ecurve.dart' as ecc;
+import 'package:coinslib/src/utils/ecurve.dart' as ecc;
 
 final defichain_testnet = NetworkType(
     messagePrefix: "DefiChain Signed Message:\n",

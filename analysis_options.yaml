@@ -3,6 +3,10 @@ analyzer:
 #     - path/to/excluded/files/**
 
 # Lint rules and documentation, see http://dart-lang.github.io/linter/lints
+
+include: package:lints/recommended.yaml
+
+
 linter:
   rules:
     - cancel_subscriptions

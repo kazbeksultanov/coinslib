@@ -150,8 +150,9 @@ Uint8List signRecoverable(Uint8List hash, Uint8List privKey) {
   // 0 and 1 and choose the one that corresponds to the public key
   for (int recid = 0; recid < 2; recid++) {
     final fullSig = Uint8List.fromList([31 + recid] + sig);
-    if (ListEquality().equals(recover(fullSig, hash), pubKey))
+    if (ListEquality().equals(recover(fullSig, hash), pubKey)) {
       return fullSig;
+    }
   }
 
   throw ArgumentError(
@@ -322,12 +323,12 @@ ECSignature deterministicSignature(Uint8List hash, Uint8List x) {
     final sig = signer.generateSignature(hash) as ECSignature;
 
     // Shift off all bits but the most significant and check that it is not set
-    if ((sig.r >> 255).toInt() == 0)
-      // r value was low, so return with this signature
+    if ((sig.r >> 255).toInt() == 0) {
       return sig;
+    }
 
     // If the r value was high, try again after incrementing the salt
-    for (int i = 0; salt[i]++ == 255; i++);
+    for (int i = 0; salt[i]++ == 255; i++) {}
 
   }
 
