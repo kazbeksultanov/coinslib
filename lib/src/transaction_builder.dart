@@ -34,14 +34,14 @@ class TransactionBuilder {
     txb.setLockTime(transaction.locktime);
 
     // Copy outputs (done first to avoid signature invalidation)
-    transaction.outs.forEach((txOut) {
+    for (var txOut in transaction.outs) {
       txb.addOutput(txOut.script, txOut.value!);
-    });
+    }
 
-    transaction.ins.forEach((txIn) {
+    for (var txIn in transaction.ins) {
       txb._addInputUnsafe(txIn.hash!, txIn.index!,
           Input(sequence: txIn.sequence, script: txIn.script, witness: txIn.witness));
-    });
+    }
 
     // fix some things not possible through the public API
     // print(txb.toString());
@@ -117,7 +117,7 @@ class TransactionBuilder {
     }
 
     Uint8List hash;
-    var value;
+    BigInt? value;
 
     if (txHash is String) {
       hash = Uint8List.fromList(HEX.decode(txHash).reversed.toList());
@@ -133,7 +133,14 @@ class TransactionBuilder {
     }
 
     return _addInputUnsafe(
-        hash, vout, Input(sequence: sequence, prevOutScript: prevOutScript, value: value));
+      hash,
+      vout,
+      Input(
+        sequence: sequence,
+        prevOutScript: prevOutScript,
+        value: value,
+      ),
+    );
   }
 
   sign({
@@ -196,7 +203,7 @@ class TransactionBuilder {
         input.signScript = prevOutScript;
       }
     }
-    var signatureHash;
+    Uint8List? signatureHash;
     if (input.hasWitness) {
       signatureHash = _tx.hashForWitnessV0(vin, input.signScript!, input.value!, hashType);
     } else {
@@ -214,7 +221,107 @@ class TransactionBuilder {
       input.signatures![i] = bscript.encodeSignature(signature, hashType);
       signed = true;
     }
-    if (!signed) throw ArgumentError('Key pair cannot sign for this input');
+    if (!signed) {
+      throw ArgumentError('Key pair cannot sign for this input');
+    }
+  }
+
+  void putSignatures({
+    required int vin,
+    required Uint8List ourPubKey,
+    required Uint8List signature,
+    int? hashType,
+  }) {
+    if (vin >= _inputs.length) {
+      throw ArgumentError('No input at index: $vin');
+    }
+    hashType = hashType ?? SIGHASH_ALL;
+    if (_needsOutputs(hashType)) {
+      throw ArgumentError('Transaction needs outputs');
+    }
+    final input = _inputs[vin];
+
+    // enforce in order signing of public keys
+    var signed = false;
+    for (var i = 0; i < input.pubkeys!.length; i++) {
+      if (HEX.encode(ourPubKey).compareTo(HEX.encode(input.pubkeys![i] as Uint8List)) != 0) {
+        continue;
+      }
+      if (input.signatures![i] != null) {
+        throw ArgumentError('Signature already exists');
+      }
+      // final signature = keyPair.sign(signatureHash);
+      input.signatures![i] = bscript.encodeSignature(signature, hashType);
+      signed = true;
+    }
+    if (!signed) {
+      throw ArgumentError('Key pair cannot sign for this input');
+    }
+  }
+
+  Uint8List getHashToSign({
+    required int vin,
+    required Uint8List ourPubKey,
+    Uint8List? redeemScript,
+    BigInt? witnessValue,
+    Uint8List? witnessScript,
+    int? hashType,
+  }) {
+    if (vin >= _inputs.length) {
+      throw ArgumentError('No input at index: $vin');
+    }
+    hashType = hashType ?? SIGHASH_ALL;
+    if (_needsOutputs(hashType)) {
+      throw ArgumentError('Transaction needs outputs');
+    }
+    final input = _inputs[vin];
+    if (!_canSign(input)) {
+      if (witnessValue != null) {
+        input.value = witnessValue;
+      }
+      if (redeemScript != null && witnessScript != null) {
+        // TODO p2wsh
+      }
+      if (redeemScript != null) {
+        // TODO
+      }
+      if (witnessScript != null) {
+        // TODO
+      }
+      if (input.prevOutScript != null && input.prevOutType != null) {
+        var type = classifyOutput(input.prevOutScript!);
+        if (type == SCRIPT_TYPES['P2WPKH']) {
+          input.prevOutType = SCRIPT_TYPES['P2WPKH'];
+          input.hasWitness = true;
+          input.signatures = [null];
+          input.pubkeys = [ourPubKey];
+          input.signScript = P2PKH(
+            data: PaymentData(pubkey: ourPubKey),
+            network: network,
+          ).data.output;
+        } else {
+          // DRY CODE
+          Uint8List prevOutScript = pubkeyToOutputScript(ourPubKey);
+          input.prevOutType = SCRIPT_TYPES['P2PKH'];
+          input.signatures = [null];
+          input.pubkeys = [ourPubKey];
+          input.signScript = prevOutScript;
+        }
+      } else {
+        Uint8List prevOutScript = pubkeyToOutputScript(ourPubKey);
+        input.prevOutType = SCRIPT_TYPES['P2PKH'];
+        input.signatures = [null];
+        input.pubkeys = [ourPubKey];
+        input.signScript = prevOutScript;
+      }
+    }
+    Uint8List? signatureHash;
+    if (input.hasWitness) {
+      signatureHash = _tx.hashForWitnessV0(vin, input.signScript!, input.value!, hashType);
+    } else {
+      signatureHash = _tx.hashForSignature(vin, input.signScript!, hashType);
+    }
+    return signatureHash;
   }
 
   Transaction build() {
@@ -344,7 +451,9 @@ class TransactionBuilder {
       throw ArgumentError('coinbase inputs not supported');
     }
     final prevTxOut = '$txHash:$vout';
-    if (_prevTxSet[prevTxOut] != null) throw ArgumentError('Duplicate TxOut: ' + prevTxOut);
+    if (_prevTxSet[prevTxOut] != null) {
+      throw ArgumentError('Duplicate TxOut: $prevTxOut');
+    }
     if (options.script != null) {
       input = Input.expandInput(options.script!, options.witness ?? EMPTY_WITNESS);
     } else {
@@ -354,7 +463,7 @@ class TransactionBuilder {
     if (input.prevOutScript == null && options.prevOutScript != null) {
       if (input.pubkeys == null && input.signatures == null) {
         var expanded = Output.expandOutput(options.prevOutScript!);
-        if (expanded.pubkeys != null && !expanded.pubkeys!.isEmpty) {
+        if (expanded.pubkeys != null && expanded.pubkeys!.isNotEmpty) {
           input.pubkeys = expanded.pubkeys;
           input.signatures = expanded.signatures;
         }

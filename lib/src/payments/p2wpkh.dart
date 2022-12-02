@@ -24,7 +24,9 @@ class P2WPKH {
         data.hash == null &&
         data.output == null &&
         data.pubkey == null &&
-        data.witness == null) throw ArgumentError('Not enough data');
+        data.witness == null) {
+      throw ArgumentError('Not enough data');
+    }
 
     if (data.address != null) {
       _getDataFromAddress(data.address!);

@@ -12,7 +12,10 @@ class P2PKH {
   PaymentData data;
   NetworkType network;
 
-  P2PKH({required this.data, NetworkType? network}) : network = network ?? bitcoin {
+  P2PKH({
+    required this.data,
+    NetworkType? network,
+  }) : network = network ?? bitcoin {
     _init();
   }
 
@@ -23,7 +26,9 @@ class P2PKH {
     } else if (data.hash != null) {
       _getDataFromHash();
     } else if (data.output != null) {
-      if (!isValidOutput(data.output!)) throw ArgumentError('Output is invalid');
+      if (!isValidOutput(data.output!)) {
+        throw ArgumentError('Output is invalid');
+      }
       data.hash = data.output!.sublist(3, 23);
       _getDataFromHash();
     } else if (data.pubkey != null) {
@@ -69,7 +74,7 @@ class P2PKH {
       data.address = bs58check.encode(payload);
     }
     data.output ??= bscript.compile(
-          [OPS['OP_DUP'], OPS['OP_HASH160'], data.hash, OPS['OP_EQUALVERIFY'], OPS['OP_CHECKSIG']]);
+        [OPS['OP_DUP'], OPS['OP_HASH160'], data.hash, OPS['OP_EQUALVERIFY'], OPS['OP_CHECKSIG']]);
   }
 
   void _getDataFromAddress(String address) {
