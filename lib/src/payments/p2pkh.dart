@@ -31,15 +31,15 @@ class P2PKH {
       _getDataFromHash();
       _getDataFromChunk();
     } else if (data.input != null) {
-      List<dynamic> _chunks = bscript.decompile(data.input)!;
-      _getDataFromChunk(_chunks);
-      if (_chunks.length != 2) {
+      List<dynamic> chunks = bscript.decompile(data.input)!;
+      _getDataFromChunk(chunks);
+      if (chunks.length != 2) {
         throw ArgumentError('Input is invalid');
       }
-      if (!bscript.isCanonicalScriptSignature(_chunks[0])) {
+      if (!bscript.isCanonicalScriptSignature(chunks[0])) {
         throw ArgumentError('Input has invalid signature');
       }
-      if (!isPoint(_chunks[1])) {
+      if (!isPoint(chunks[1])) {
         throw ArgumentError('Input has invalid pubkey');
       }
     } else {
@@ -47,14 +47,14 @@ class P2PKH {
     }
   }
 
-  void _getDataFromChunk([List<dynamic>? _chunks]) {
-    if (data.pubkey == null && _chunks != null) {
-      data.pubkey = (_chunks[1] is int) ? Uint8List.fromList([_chunks[1]]) : _chunks[1];
+  void _getDataFromChunk([List<dynamic>? chunks]) {
+    if (data.pubkey == null && chunks != null) {
+      data.pubkey = (chunks[1] is int) ? Uint8List.fromList([chunks[1]]) : chunks[1];
       data.hash = hash160(data.pubkey!);
       _getDataFromHash();
     }
-    if (data.signature == null && _chunks != null) {
-      data.signature = (_chunks[0] is int) ? Uint8List.fromList([_chunks[0]]) : _chunks[0];
+    if (data.signature == null && chunks != null) {
+      data.signature = (chunks[0] is int) ? Uint8List.fromList([chunks[0]]) : chunks[0];
     }
     if (data.input == null && data.pubkey != null && data.signature != null) {
       data.input = bscript.compile([data.signature!, data.pubkey!]);
@@ -68,10 +68,8 @@ class P2PKH {
       payload.setRange(1, payload.length, data.hash!);
       data.address = bs58check.encode(payload);
     }
-    if (data.output == null) {
-      data.output = bscript.compile(
+    data.output ??= bscript.compile(
           [OPS['OP_DUP'], OPS['OP_HASH160'], data.hash, OPS['OP_EQUALVERIFY'], OPS['OP_CHECKSIG']]);
-    }
   }
 
   void _getDataFromAddress(String address) {
