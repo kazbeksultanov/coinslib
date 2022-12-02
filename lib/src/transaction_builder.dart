@@ -19,8 +19,10 @@ class TransactionBuilder {
   final Transaction _tx = Transaction()..version = 2;
   final Map _prevTxSet = {};
 
-  TransactionBuilder({NetworkType? network, int? maximumFeeRate})
-      : network = network ?? bitcoin,
+  TransactionBuilder({
+    NetworkType? network,
+    int? maximumFeeRate,
+  })  : network = network ?? bitcoin,
         maximumFeeRate = maximumFeeRate ?? 2500;
 
   List<Input> get inputs => _inputs;
@@ -101,8 +103,7 @@ class TransactionBuilder {
 
     // Enforce the limit of the allowed data size
     if (data.length > network.opreturnSize) {
-      throw ArgumentError(
-          'Too much data, max OP_RETURN size is ' + network.opreturnSize.toString());
+      throw ArgumentError('Too much data, max OP_RETURN size is ${network.opreturnSize}');
     }
 
     // Encode output script with OP_RETURN followed by the push data
