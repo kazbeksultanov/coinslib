@@ -15,9 +15,9 @@ import 'classify.dart';
 class TransactionBuilder {
   NetworkType network;
   int maximumFeeRate;
-  List<Input> _inputs = [];
-  Transaction _tx = Transaction()..version = 2;
-  Map _prevTxSet = {};
+  final List<Input> _inputs = [];
+  final Transaction _tx = Transaction()..version = 2;
+  final Map _prevTxSet = {};
 
   TransactionBuilder({NetworkType? network, int? maximumFeeRate})
       : network = network ?? bitcoin,
