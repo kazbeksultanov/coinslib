@@ -155,54 +155,19 @@ class TransactionBuilder {
       throw ArgumentError('Inconsistent network');
     }
     if (vin >= _inputs.length) {
-      throw ArgumentError('No input at index: $vin');
+      throw ArgumentError('No inputRaw at index: $vin');
     }
     hashType = hashType ?? SIGHASH_ALL;
     if (_needsOutputs(hashType)) {
       throw ArgumentError('Transaction needs outputs');
     }
-    final input = _inputs[vin];
     final ourPubKey = keyPair.publicKey;
-    if (!_canSign(input)) {
-      if (witnessValue != null) {
-        input.value = witnessValue;
-      }
-      if (redeemScript != null && witnessScript != null) {
-        // TODO p2wsh
-      }
-      if (redeemScript != null) {
-        // TODO
-      }
-      if (witnessScript != null) {
-        // TODO
-      }
-      if (input.prevOutScript != null && input.prevOutType != null) {
-        var type = classifyOutput(input.prevOutScript!);
-        if (type == SCRIPT_TYPES['P2WPKH']) {
-          input.prevOutType = SCRIPT_TYPES['P2WPKH'];
-          input.hasWitness = true;
-          input.signatures = [null];
-          input.pubkeys = [ourPubKey];
-          input.signScript = P2PKH(
-            data: PaymentData(pubkey: ourPubKey),
-            network: network,
-          ).data.output;
-        } else {
-          // DRY CODE
-          Uint8List prevOutScript = pubkeyToOutputScript(ourPubKey!);
-          input.prevOutType = SCRIPT_TYPES['P2PKH'];
-          input.signatures = [null];
-          input.pubkeys = [ourPubKey];
-          input.signScript = prevOutScript;
-        }
-      } else {
-        Uint8List prevOutScript = pubkeyToOutputScript(ourPubKey!);
-        input.prevOutType = SCRIPT_TYPES['P2PKH'];
-        input.signatures = [null];
-        input.pubkeys = [ourPubKey];
-        input.signScript = prevOutScript;
-      }
-    }
+    final Input input = _prepareInputToHash(
+      inputRaw: _inputs[vin],
+      ourPubKey: ourPubKey!,
+      witnessValue: witnessValue,
+    );
+
     Uint8List? signatureHash;
     if (input.hasWitness) {
       signatureHash = _tx.hashForWitnessV0(vin, input.signScript!, input.value!, hashType);
@@ -213,7 +178,7 @@ class TransactionBuilder {
     // enforce in order signing of public keys
     var signed = false;
     for (var i = 0; i < input.pubkeys!.length; i++) {
-      if (HEX.encode(ourPubKey!).compareTo(HEX.encode(input.pubkeys![i] as Uint8List)) != 0) {
+      if (HEX.encode(ourPubKey).compareTo(HEX.encode(input.pubkeys![i] as Uint8List)) != 0) {
         continue;
       }
       if (input.signatures![i] != null) throw ArgumentError('Signature already exists');
@@ -222,7 +187,7 @@ class TransactionBuilder {
       signed = true;
     }
     if (!signed) {
-      throw ArgumentError('Key pair cannot sign for this input');
+      throw ArgumentError('Key pair cannot sign for this inputRaw');
     }
   }
 
@@ -274,47 +239,11 @@ class TransactionBuilder {
     if (_needsOutputs(hashType)) {
       throw ArgumentError('Transaction needs outputs');
     }
-    final input = _inputs[vin];
-    if (!_canSign(input)) {
-      if (witnessValue != null) {
-        input.value = witnessValue;
-      }
-      if (redeemScript != null && witnessScript != null) {
-        // TODO p2wsh
-      }
-      if (redeemScript != null) {
-        // TODO
-      }
-      if (witnessScript != null) {
-        // TODO
-      }
-      if (input.prevOutScript != null && input.prevOutType != null) {
-        var type = classifyOutput(input.prevOutScript!);
-        if (type == SCRIPT_TYPES['P2WPKH']) {
-          input.prevOutType = SCRIPT_TYPES['P2WPKH'];
-          input.hasWitness = true;
-          input.signatures = [null];
-          input.pubkeys = [ourPubKey];
-          input.signScript = P2PKH(
-            data: PaymentData(pubkey: ourPubKey),
-            network: network,
-          ).data.output;
-        } else {
-          // DRY CODE
-          Uint8List prevOutScript = pubkeyToOutputScript(ourPubKey);
-          input.prevOutType = SCRIPT_TYPES['P2PKH'];
-          input.signatures = [null];
-          input.pubkeys = [ourPubKey];
-          input.signScript = prevOutScript;
-        }
-      } else {
-        Uint8List prevOutScript = pubkeyToOutputScript(ourPubKey);
-        input.prevOutType = SCRIPT_TYPES['P2PKH'];
-        input.signatures = [null];
-        input.pubkeys = [ourPubKey];
-        input.signScript = prevOutScript;
-      }
-    }
+    final Input input = _prepareInputToHash(
+      inputRaw: _inputs[vin],
+      ourPubKey: ourPubKey,
+      witnessValue: witnessValue,
+    );
     Uint8List? signatureHash;
     if (input.hasWitness) {
       signatureHash = _tx.hashForWitnessV0(vin, input.signScript!, input.value!, hashType);
@@ -347,16 +276,22 @@ class TransactionBuilder {
           _inputs[i].signatures!.isNotEmpty) {
         if (_inputs[i].prevOutType == SCRIPT_TYPES['P2PKH']) {
           P2PKH payment = P2PKH(
-              data:
-                  PaymentData(pubkey: _inputs[i].pubkeys![0], signature: _inputs[i].signatures![0]),
-              network: network);
+            data: PaymentData(
+              pubkey: _inputs[i].pubkeys![0],
+              signature: _inputs[i].signatures![0],
+            ),
+            network: network,
+          );
           tx.setInputScript(i, payment.data.input!);
           tx.setWitness(i, payment.data.witness);
         } else if (_inputs[i].prevOutType == SCRIPT_TYPES['P2WPKH']) {
           P2WPKH payment = P2WPKH(
-              data:
-                  PaymentData(pubkey: _inputs[i].pubkeys![0], signature: _inputs[i].signatures![0]),
-              network: network);
+            data: PaymentData(
+              pubkey: _inputs[i].pubkeys![0],
+              signature: _inputs[i].signatures![0],
+            ),
+            network: network,
+          );
           tx.setInputScript(i, payment.data.input!);
           tx.setWitness(i, payment.data.witness!);
         }
@@ -484,6 +419,56 @@ class TransactionBuilder {
   Transaction get tx => _tx;
 
   Map get prevTxSet => _prevTxSet;
+
+  Input _prepareInputToHash({
+    required Input inputRaw,
+    required Uint8List ourPubKey,
+    Uint8List? redeemScript,
+    BigInt? witnessValue,
+    Uint8List? witnessScript,
+  }) {
+    if (!_canSign(inputRaw)) {
+      if (witnessValue != null) {
+        inputRaw.value = witnessValue;
+      }
+      if (redeemScript != null && witnessScript != null) {
+        // TODO p2wsh
+      }
+      if (redeemScript != null) {
+        // TODO
+      }
+      if (witnessScript != null) {
+        // TODO
+      }
+      if (inputRaw.prevOutScript != null && inputRaw.prevOutType != null) {
+        var type = classifyOutput(inputRaw.prevOutScript!);
+        if (type == SCRIPT_TYPES['P2WPKH']) {
+          inputRaw.prevOutType = SCRIPT_TYPES['P2WPKH'];
+          inputRaw.hasWitness = true;
+          inputRaw.signatures = [null];
+          inputRaw.pubkeys = [ourPubKey];
+          inputRaw.signScript = P2PKH(
+            data: PaymentData(pubkey: ourPubKey),
+            network: network,
+          ).data.output;
+        } else {
+          // DRY CODE
+          Uint8List prevOutScript = pubkeyToOutputScript(ourPubKey);
+          inputRaw.prevOutType = SCRIPT_TYPES['P2PKH'];
+          inputRaw.signatures = [null];
+          inputRaw.pubkeys = [ourPubKey];
+          inputRaw.signScript = prevOutScript;
+        }
+      } else {
+        Uint8List prevOutScript = pubkeyToOutputScript(ourPubKey);
+        inputRaw.prevOutType = SCRIPT_TYPES['P2PKH'];
+        inputRaw.signatures = [null];
+        inputRaw.pubkeys = [ourPubKey];
+        inputRaw.signScript = prevOutScript;
+      }
+    }
+    return inputRaw;
+  }
 }
 
 Uint8List pubkeyToOutputScript(Uint8List pubkey, [NetworkType? nw]) {
